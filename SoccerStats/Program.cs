@@ -19,12 +19,13 @@ namespace SoccerStats
             fileName = Path.Combine(directory.FullName, "players.json");
             var players = DeserializePlayers(fileName);
 
-            foreach (var player in players)
+            foreach (var player in GetToptenPlayers(players))
             {
-                Console.WriteLine(player.FirstName);
+                Console.WriteLine($"{player.FirstName}/{player.SecondName}/{player.PointsPerGame}");
             }
 
-
+            fileName = Path.Combine(directory.FullName, "TopTenPlayers.json");
+            SerializeplayerToFile(GetToptenPlayers(players), fileName);
         }
 
         public static string ReadFile(string fileName)
@@ -96,6 +97,32 @@ namespace SoccerStats
                 players= serializer.Deserialize<List<Player>>(jsonReader);
             }
             return players;
+        }
+        public static List<Player> GetToptenPlayers(List<Player> players)
+        {
+            var TopTenPlayers = new List<Player>();
+            players.Sort(new PlayerComparer());
+            players.Reverse();
+            int count = 0;
+            foreach (var player in players)
+            {
+                TopTenPlayers.Add(player);
+                count++;
+                if (count==10)
+                {
+                    break;
+                }
+            }
+            return TopTenPlayers;
+        }
+        public static void SerializeplayerToFile(List<Player> players, string fileName)
+        {
+            var serializer = new JsonSerializer();
+            using (var writer = new StreamWriter(fileName))
+            using (var jsonWriter = new JsonTextWriter(writer))
+            {
+                serializer.Serialize(jsonWriter, players);
+            }
         }
     }
 }
